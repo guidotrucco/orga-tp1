@@ -1,7 +1,7 @@
 # Do not edit -- this file documents how this program was built for your machine.
 SYSTYPE	= LINUX4
 SYSLIBS	= -lm
-CC	= gcc $(WARN) 
+CC	= gcc $(WARN)
 OPT	= -O
 DEBUG	= -g
 EXPORT	= AUXLIBS='' CCARGS='' OPT='-O' DEBUG='-g'
@@ -35,4 +35,4 @@ clean:
 	cp Makefile.init Makefile
 	rm -f bin/[!CRS]* lib/[!CRS]* include/[!CRS]* libexec/[!CRS]*     \
 	      junk *core .nfs* .pure *.out *.out.* *.tmp *.a *~ *- *.orig \
-	      *.t *.o *.bak make.err *.gmon $(PROG)
+*.t *.o *.bak make.err *.gmon $(PROG)
