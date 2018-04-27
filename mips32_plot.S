@@ -10,7 +10,6 @@
   .abicalls
   .align 2
   .globl mips32_plot
-  .extern fprintf
   .ent mips32_plot
 mips32_plot:
   #creo stack frame con size 64 (por ahora)
@@ -33,10 +32,10 @@ mips32_plot:
   sw t0, 16($fp)
   la a0, pgm
   jal mystrlen
-  move a2, v0                                   # Cargo len(head_pgm)
-  lw a0, 16($fp)                                # Cargo fd
-  la a1, pgm                               # Cargo head_pgm
-  jal fprintf                                  
+  move a2, v0                                   
+  //lw a0, 16($fp)   #aca hay segfault                            
+  //la a1, pgm                               
+  //jal fprintf                                  
 
 
   .end mips32_plot
