@@ -34,7 +34,7 @@ mips32_plot:
   
   jal my_fprintf              # Imprimo el header 
   lw t0, 64($fp)
-  lw a0, 32(t0)                                 # Cargo x_res
+  lw t3, 32(t0)                                 # Cargo x_res
   jal itoa                                # x_res -> str
   la a0,buffer
   jal my_strlen
@@ -94,44 +94,29 @@ my_fprintf:
 
 .ent itoa
 itoa:
-  .frame $fp, 8, ra
-  .set noreorder
-  .cpload t9
-  .set reorder
-  subu sp, sp, 8
-  .cprestore 0
-  sw $fp, 4(sp)
-  move $fp, sp
-  sw a0, 8($fp)
-  la   t0, buffer    # load buf
-  add  t0, t0, 30   # seek the end
-  sb   $0, 1(t0)     # null-terminated str
-  li   t1, '0'  
-  sb   t1, (t0)     # init. with ascii 0
-  slt  t2, a0, 0   # keep the sign
-  li   t3, 10        # preload 10
-  beq  a0, 0, iend  # end if 0
-  neg  a0, a0
-loop_itoa:
-  div  a0, t3       # a /= 10
-  mflo a0
-  mfhi t4            # get remainder
-  add  t4, t4, t1  # convert to ASCII digit
-  sb   t4, (t0)     # store it
-  sub  t0, t0, 1    # dec. buf ptr
-  bne  a0, 0, loop_itoa  # if not zero, loop
-  addi t0, t0, 1    # adjust buf ptr
+  itoa:
+    # receives parameter in t3
+    la      t0, buffer    ## load buf
+    add     t0, t0, 30    ## seek the end
+    sb      zero, 1(t0)   ## null-terminated str
+    li      t5, 1         ## start bytes counter
+    li      t1, '0'
+    sb      t1, (t0)      ## init. with ascii 0
+    li      t2, 10        ## preload 10
+    beq     t3, 0, iend   ## end if arg is 0
+loop:
+    div     t3, t2        ## a /= 10
+    mflo    t3
+    mfhi    t4            ## get remainder
+    add     t4, t4, t1    ## convert to ASCII digit
+    sb      t4, (t0)      ## store it
+    sub     t0, t0, 1     ## dec. buf ptr
+    add     t5, t5, 1     ## bytes counter++
+    bne     t3, 0, loop   ## if not zero, loop
 iend:
-  beq  t2, 0, nolz  # was < 0?
-  addi t0, t0, -1
-  li   t1, '-'
-  sb  t1, (t0)
-nolz:
-  lw $fp, 4(sp)              
-  lw gp, 0(sp)
-  addu sp, sp, 8
-  move v0, t0      # return the addr.
-  jr   ra           # of the string
+    move    a1, t0        ## return the addr of the string
+    move    a2, t5        ## return the number of bytes written
+    jr ra 
   .end itoa
 .size itoa, .-itoa
 
