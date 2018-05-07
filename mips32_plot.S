@@ -4,7 +4,7 @@
 
 .data
   .align 2
-  pgm: .asciiz "P\n"
+  pgm: .asciiz "P2\n"
 
 .text
   .abicalls
@@ -27,9 +27,10 @@ mips32_plot:
   sw t0, 16($fp)              # Salvo fd en la region de argumentos
   la a0, pgm                  # Guardo la direccion del header de pgm en a0 para llamar a strlen
   jal my_strlen
-  addu a2,v0,zero                 # Cargo len(pgm) en a2
+  move a2,v0                 # Cargo len(pgm) en a2
   lw a0, 16($fp)              # Cargo fd en a0
   la a1, pgm                  # Cargo pgm en a1
+  
   jal my_fprintf              # Imprimo el header                                 
 
 
@@ -70,15 +71,18 @@ my_fprintf:
   .cpload t9
   .set reorder
   subu sp, sp, 8
-  .cprestore 0                # No estoy seguro del 8
-  sw    $fp, 4(sp)            # guardo fp
-  move  $fp, sp
-  li    v0, SYS_write
+  .cprestore 0
+  sw $fp, 4(sp)
+  move $fp, sp
+  sw a0, 8($fp)               # Fin de creacion de SF
+  li v0, SYS_write
   syscall
+  lw $fp, 4(sp)              
+  lw gp, 0(sp)
+  addu sp, sp, 8
   jr ra
-  
   .end my_fprintf
-  .size my_fprintf, .-my_fprintf
+.size my_fprintf, .-my_fprintf
 
 
 
