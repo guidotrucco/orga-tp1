@@ -12,65 +12,74 @@
   .globl mips32_plot
   .ent mips32_plot
 mips32_plot:
-  #creo stack frame con size 64 (por ahora)
-  .frame  $fp, 64, ra       
-  .set  noreorder
+  .frame $fp, 64, ra
+  .set noreorder
   .cpload t9
-  .set  reorder
-  subu  sp, sp, 64
-  .cprestore 20
-  #guardo los valores de ra y fp
-  sw  ra,  52(sp)
-  sw  $fp, 56(sp)
-  move  $fp, sp 
-  #guardo el parametro en el stack           
-  sw a0, 64($fp)            
-  
-  #obtengo file descriptor y lo guardo en t0
-  lh t0, 58(a0)
-  #guardo file descriptor en el stack
-  sw t0, 16($fp)
-  la a0, pgm
-  jal mystrlen
-  move a2, v0                                   
-  //lw a0, 16($fp)   #aca hay segfault                            
-  //la a1, pgm                               
-  //jal fprintf                                  
+  .set reorder
+  subu sp, sp, 64
+  .cprestore 48
+  sw $fp, 52(sp)
+  sw ra, 56(sp)
+  move $fp, sp                # Fin de creacion de SF
+  sw a0, 64($fp)              # Guardo la variable params en el stack                  
+  lw t0, 44(a0)               # Obtengo dir de fp en t0
+  lh t0, 14(t0)               # Obtengo fd
+  sw t0, 16($fp)              # Salvo fd en la region de argumentos
+  la a0, pgm                  # Guardo la direccion del header de pgm en a0 para llamar a strlen
+  jal my_strlen
+  addu a2,v0,zero                 # Cargo len(pgm) en a2
+  lw a0, 16($fp)              # Cargo fd en a0
+  la a1, pgm                  # Cargo pgm en a1
+  jal my_fprintf              # Imprimo el header                                 
 
 
   .end mips32_plot
 
 #mystrlen de ejemplo (no se si la podemos usar)
-  .ent  mystrlen
-mystrlen:
-  .frame  $fp, 16, ra
-  .set  noreorder
+  .ent  my_strlen
+my_strlen:
+  .frame $fp, 8, ra
+  .set noreorder
   .cpload t9
-  .set  reorder
-  subu  sp, sp, 16
+  .set reorder
+  subu sp, sp, 8
   .cprestore 0
-  sw  gp, 4(sp)
-  sw  $fp, 8(sp)
+  sw $fp, 4(sp)
+  move $fp, sp
+  sw a0, 8($fp)               # Fin de creacion de SF
+  move t0, zero               # En t0 guardo el indice (i=0)
+  b loop
+increment:
+  addiu t0, t0, 1             # i++
+loop:
+  addu t1, t0, a0             # Sumo el indice al inicio de la cadena
+  lb t1, 0(t1)                # Cargo el caracter actual en t1
+  bnez t1, increment          # Si el caracter es distinto de '\0'(0) incremento
+  move v0, t0                 # LLegue al final de la cadena
+  lw $fp, 4(sp)              
+  lw gp, 0(sp)
+  addu sp, sp, 8
+  jr ra
+  .end my_strlen
+  .size my_strlen, .-my_strlen
+  
+.ent my_fprintf
+my_fprintf:
+  .frame $fp, 8, ra
+  .set noreorder
+  .cpload t9
+  .set reorder
+  subu sp, sp, 8
+  .cprestore 0                # No estoy seguro del 8
+  sw    $fp, 4(sp)            # guardo fp
   move  $fp, sp
-  sw  a0, 16(sp)
+  li    v0, SYS_write
+  syscall
+  jr ra
+  
+  .end my_fprintf
+  .size my_fprintf, .-my_fprintf
 
-  # Use v0 for the result.
-  #
-  li  v0, 0
-mystrlen_loop:
-  lb  t0, 0(a0)
-  beqz  t0, mystrlen_return
-  addiu a0, a0, 1
-  addiu v0, v0, 1
-  j mystrlen_loop
 
-mystrlen_return:
-  # Destruimos el frame.
-  #
-  lw  $fp, 8(sp)
-  addu  sp, sp, 16
 
-  # Retorno.
-  #
-  j ra
-  .end  mystrlen
+
