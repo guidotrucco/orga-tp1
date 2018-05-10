@@ -23,9 +23,9 @@
 #define optional_argument 2
 #endif
 
-static void do_plot(void);
-extern void mips32_plot(param_t *);
-extern void generic_plot(param_t *);
+static int do_plot(void);
+extern int mips32_plot(param_t *);
+extern int generic_plot(param_t *);
 
 /*
  * Parámetros globales.
@@ -39,7 +39,7 @@ float lower_right_re = +1.0f; /* Extremo inferior derecho (re). */
 float lower_right_im = -1.0f; /* Extremo inferior derecho (im). */
 float seed_re = -0.72689535f;   /* Semilla (re). */
 float seed_im = +0.18888713f;   /* Semilla (im). */
-void (*plot)(param_t *) = NULL;
+int (*plot)(param_t *) = NULL;
 FILE *output = NULL;
 
 static void parse_cmdline(int, char * const []);
@@ -57,9 +57,9 @@ int
 main(int argc, char * const argv[], char * const envp[])
 {
   parse_cmdline(argc, argv);
-  do_plot();
+  return do_plot();
 
-  return 0;
+  //return 0;
 }
 
 static void
@@ -343,7 +343,7 @@ do_output(const char *name, const char *spec)
   }
 }
 
-static void
+static int
 do_plot(void)
 {
   param_t parms;
@@ -362,5 +362,5 @@ do_plot(void)
         parms.shades = 256;
         parms.fp = output;
 
-  plot(&parms);
+  return plot(&parms);
 }
