@@ -3,7 +3,7 @@
 #include <defs.h>
 #include <param.h>
 
-int
+void
 generic_plot(param_t *parms)
 {
 	float cr, ci;
@@ -61,5 +61,4 @@ generic_plot(param_t *parms)
 		fprintf(stderr, "cannot flush output file.\n");
 		exit(1);
 	}
-	return 0;
 }
